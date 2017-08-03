@@ -1,0 +1,25 @@
+{
+  "name": "klen-secure",
+  "version": "1.0.0",
+  "description": "back-end route security using node and express",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LeighSteiner/klen-secure.git"
+  },
+  "keywords": [
+    "security",
+    "express",
+    "node",
+    "routes"
+  ],
+  "author": "Leigh Steiner",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/LeighSteiner/klen-secure/issues"
+  },
+  "homepage": "https://github.com/LeighSteiner/klen-secure#readme"
+}

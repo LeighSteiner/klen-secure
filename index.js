@@ -22,11 +22,15 @@ function authMaster(){
 		var secretId = 0;
 		return class {
 			constructor(modelAuthenticator, authObject){
+				this.id = secretId++
+				secretLocation[this.id] = {
+					authObject: authObject
+				};
 				this.modelAuthenticator = modelAuthenticator;
 				this.authFunctions = authObject || {
 					async isUser : function(id){
 						let user = await this.modelAuthenticator.findById(id)
-						
+
 					}, 
 					isThisUser : function(id){},
 					isMod : function(id){},
@@ -37,7 +41,7 @@ function authMaster(){
 
 			 checkAuthorizations(userId){
 			 	let output = [];
-			 	for (let k in this.authFunctions){
+			 	for (let k in secretLocation[this.id].authFunctions){
 			 		if (authFunctions[k](userId)){
 			 			output.push(k);
 			 		}
@@ -45,7 +49,7 @@ function authMaster(){
 			 	}
 			 }
 			 checkOneAuth(userId, whichAuth){
-				if (authFunction.hasOwnProperty(whichAuth)){
+				if (secretLocation[this.id].authFunction.hasOwnProperty(whichAuth)){
 					return whichAuth(userId); 
 				}
 			}

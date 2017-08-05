@@ -17,6 +17,7 @@ of all clearance levels to which a particular user has access.
 ! Set up !
 ----------</b>
 <br>
+
   The authMaster (the export from klen-secure) takes a reference to a model on which to run the authentication checks, an object containing your custom authorization functions (which defaults, for illustration purposes, to a series of Sequelize calls to a PostgresDB), and a boolean (default set to false) which allows access to the getAuthFailLog function (as opposed to the viewAuthFailLog).  Once required and initialized, you can secure as many of your routes as required.  
   
 <b>----------
@@ -30,7 +31,7 @@ of all clearance levels to which a particular user has access.
   const userAuthenticator = new authMaster(User, authObject, true);
 4. after login, use the checkAuthorizations middleware to attach clearances to your user: 
   router.use(userAuthenticator.checkAuthorizations())
-5.  secure your routes!
+5.  secure your routes!<br>
   router.get('/ModsOnly', userAuthenticator.authFailLogger('isMod'), (req, res,next) => {
 	  res.send('Welcome to the Mod Page!');})
   

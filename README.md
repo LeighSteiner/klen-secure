@@ -16,12 +16,13 @@ of all clearance levels to which a particular user has access.
 <b>----------
 ! Set up !
 ----------</b>
+<br>
   The authMaster (the export from klen-secure) takes a reference to a model on which to run the authentication checks, an object containing your custom authorization functions (which defaults, for illustration purposes, to a series of Sequelize calls to a PostgresDB), and a boolean (default set to false) which allows access to the getAuthFailLog function (as opposed to the viewAuthFailLog).  Once required and initialized, you can secure as many of your routes as required.  
   
 <b>----------
 ! Usage !
 ----------</b>
-  
+  <br>
 1. npm install --save klen-secure
 2. in the appropriate file:
   const authMaster = require('klen-secure')(); //you MUST invoke authMaster in order to access its functionality

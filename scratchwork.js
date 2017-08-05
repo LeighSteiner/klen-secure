@@ -2,6 +2,24 @@ const authMaster = require('auth-master');
 const userAuthenticator = new authMaster(db.Users, {user: function(id){ validationHere }, siteController: function(){...}, admin: function(){}});
 // userAuthenticator.isAuthorized(userId);
 
+ //this is how you have to require it in 
+// app.use(userAuthenticator.checkAuthorizations) //thus only receives req res next
+//dependent on PASSPORT because then you check for req.user 
+
+// function volleyball(req, res, next){
+
+// }
+// the goal:  to create a library that works without Express or Sequelize, 
+//takes in a model to authenticate, a series of authorization functions
+// and performs security functions 
+//store authorization models in private object inside an iffy function 
+//each new instance MUST be established with an id
+//set up to default to sequelize but can be overridden
+
+//somehow pass the functions into the private object 
+
+//model authenticator : what model do you want to authenticate and how do you access it
+
 
 function authMaster(){
     (function(){

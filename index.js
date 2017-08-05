@@ -1,103 +1,105 @@
 //usage
-const authMaster = require('auth-master');
-const userAuthenticator = new authMaster(db.Users, {user: function(id){ validationHere }, siteController: function(){...}, admin: function(){}});
+// const authMaster = require('auth-master')();
+// const userAuthenticator = new authMaster(db.Users, {user: function(id){ validationHere }, siteController: function(){...}, admin: function(){}});
 // userAuthenticator.isAuthorized(userId);
 
-app.use(userAuthenticator.checkAuthorizations) //thus only receives req res next
-//dependent on PASSPORT because then you check for req.user 
 
-function volleyball(req, res, next){
-
-}
-// the goal:  to create a library that works without Express or Sequelize, 
-//takes in a model to authenticate, a series of authorization functions
-// and performs security functions 
-//store authorization models in private object inside an iffy function 
-//each new instance MUST be established with an id
-//set up to default to sequelize but can be overridden
-
-//somehow pass the functions into the private object 
-
-//model authenticator : what model do you want to authenticate and how do you access it
-
+const authMaster = require('./api/klen-secure')(); 
 
 function authMaster(){
-	(function(){
+	return (function(){
 		var secretLocation = {};
 		var secretId = 0;
 		return class {
-			constructor(modelAuthenticator, authObject){
+			constructor(modelAuthenticator, authObject, logViewBool){
+
 				this.id = secretId++
 				secretLocation[this.id] = {
-					authObject: authObject, 
-					authFailLog : {}
+					authFailLog : {}, 
+					logViewBool : logViewBool || false //default setting is that you canNOT modify the log 
 				};
-				this.checkAuthorizations = this.checkAuthorizations.bind(this);
-				this.authFailLogger = this.authFailLogger.bind(this);
 
 				this.modelAuthenticator = modelAuthenticator;
-				this.authFunctions = authObject || {  //can we contain the Sequelize in the authObj? 
-					 isUser : async function(id){
+				
+				secretLocation[this.id].authObject = authObject || {  //can we contain the Sequelize in the authObj? 
+					 isUser : async (id) => {  ///REQUIRES NODE 7.6 
 						let user = await this.modelAuthenticator.findById(id)
-						user ? true : false; 
+						return !!user;
 					}, 
-					// isThisUser : async function(id, targetId){},  //this doesn't work because it doesn't match
-					isMod : async function(id){
+					isMod : async (id) => {
 						let user = await this.modelAuthenticator.findById(id)
-						user.isMod ? true : false; 
-
+						 return !!user.isMod;
 					},
-					isAdmin: async function(id){
+					isAdmin: async (id) =>{
 						let user = await this.modelAuthenticator.findById(id)
-						user.isAdmin ? true : false; 
+						return !!user.isAdmin; 
 					},
-					isSiteController : async function(id){
+					isSiteController : async (id) => {
 						let user = await this.modelAuthenticator.findById(id)
-						user.isSiteController ? true : false ;
-					} //make DRYer 
-					// isParticularClearance(id, clearanceStr){} //is this a better check ModelAuthenticator[clearanceStr]: true
+						return !!user.isSiteController;
+					}  
 				}
+
 			}
 
-			 checkAuthorizations(req,res,next){ // is now a piece of middleware which relies on PASSPORT 
+			 checkAuthorizations(){ 
 			 	let output = [];
-			 	if(req.user){
-				 		for (let k in secretLocation[this.id].authFunctions){
-					 		if (authFunctions[k](req.user.id)){
-					 			output.push(k);
-					 		}
-				 		req.user.clearances = output;
+			 	return (req,res,next) => {
+			 		if(req.user){
+			 			
+					 		for (let k in secretLocation[this.id].authObject){
+						 		if (secretLocation[this.id].authObject[k](req.user.id)){
+						 			output.push(k);
+						 		}
+					 		req.user.clearances = output;
+					 		console.log('clearance: ',req.user.clearances)
+				 		} 
 				 		next();
-			 		} //check if req.user.clearances.contains(x)
-			 	}else{
-			 		throw new Error('checkAuth: user is not logged in')
+				 	}else{
+				 		next(new Error('checkAuth: user is not logged in'));
+				 	}
 			 	}
 			 }
 
-			 authFailLogger(whichAuth){  //RETURNS a function which is a piece of middleware 
-			 	return function(req,res,next){
+	 		authFailLogger(whichAuth){
+			 	return (req,res,next) => {
 				 	if (req.user){
-				 		if(secretLocation[this.id].authFunction.hasOwnProperty(whichAuth)){
+				 		if(secretLocation[this.id].authObject.hasOwnProperty(whichAuth)){
 				 			if (req.user.clearances.includes(whichAuth)){
 				 				next();
 				 			}else{
 				 				if (secretLocation[this.id].authFailLog[whichAuth]){
 				 					secretLocation[this.id].authFailLog[whichAuth].push(req.user.id);
+				 					console.log(whichAuth, "Fail Log: ",secretLocation[this.id].authFailLog[whichAuth]);
+
 				 				}else{
 				 					secretLocation[this.id].authFailLog[whichAuth] = [req.user.id];
+				 					console.log(whichAuth, "Fail Log: ",secretLocation[this.id].authFailLog[whichAuth])
 				 				}
+				 				next(new Error('You do not have valid clearance'));
 				 			}
 				 		}else{
-				 			throw new Error('not a valid authorization check');
+				 			 next(new Error('not a valid authorization check'));
 				 		}
-				 	}
-			 	}else{
-			 		throw new Error('authFailLog: user is not logged in');
-			 	}	
+				 	}else{
+			 			next(new Error('authFailLog: user is not logged in'));
+			 		}	
+			 	}
 			 }
 			
-			
+			getAuthFailLog(){
+				if(secretLocation[this.id].logViewBool){
+					return secretLocation[this.id].authFailLog;  //might allow for modification?  maybe is another param for function
+				}else{
+					throw new Error('you cannot modify this log');
+				}
+			}
+
+			viewAuthFailLog(){
+				return secretLocation[this.id].authFailLog.toString();;
+			}
 		}
 	}
 	)();
 }
+module.exports = authMaster;

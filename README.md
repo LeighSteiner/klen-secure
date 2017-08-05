@@ -11,7 +11,9 @@ module can use them, but they <b>cannot be overwritten or manipulated elsewhere 
 of the functions on your authObject, and attaches a "clearance" property to the request's user, which has a array
 of all clearance levels to which a particular user has access. 
 
-  The second, <b>authFailLogger</b> has two purposes.  It should be passed as middleware into any route (see Usage examples below) which requires a particular clearance level to access.  authFailLogger handles both preventing and allowing access appropriately, based on a users clearances, and creates a log of userIds which make any particular bad request, allowing you to see which users are attempting to access protected areas of your application. 
+  The second, <b>authFailLogger</b> has two purposes.  It should be passed as middleware into any route (see Usage examples below) which requires a particular clearance level to access.  authFailLogger handles both preventing and allowing access appropriately, based on a users clearances, and creates a log of userIds which make any particular bad request, allowing you to see which users are attempting to access protected areas of your application.
+  
+  There is also a secondary function, <b>singleRouteSecure</b>.  With checkAuthorizations, all of your authFunctions (which are likely to be DB queries, and therefore slow) are run once, and only once, and thereafter, only the clearances array is checked, which is much more efficient.  However, *if* your application has very cases where it will be checking clearance level, using the singleRoute middleware might be a superior options, as it only queries the DB at the absolute last possible moment.
 
 <b>----------
 ! Set up !

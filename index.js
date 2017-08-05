@@ -20,7 +20,7 @@ function authMaster(){
 				this.modelAuthenticator = modelAuthenticator;
 				
 				secretLocation[this.id].authObject = authObject || {  //default setup for Sequelize 
-					 isUser : async (id) => {  // async await requires at least Node 7.6
+					 isUser : async (id) => {                        // async await requires at least Node 7.6
 						let user = await this.modelAuthenticator.findById(id)
 						return !!user;
 					}, 
@@ -85,15 +85,41 @@ function authMaster(){
 			 	}
 			 }
 			
+			singleRouteSecure(whichAuth){
+				return (req,res,next) => {
+					if (req.user){
+						if(secretLocation[this.id].authObject.hasOwnProperty(whichAuth)){
+							if(secretLocation[this.id].authObject[whichAuth](req.user.id)){
+								next();
+							}else{
+								if (secretLocation[this.id].authFailLog[whichAuth]){
+				 					secretLocation[this.id].authFailLog[whichAuth].push(req.user.id);
+				 					console.log(secretLocation[this.id].authFailLog[whichAuth]);
+
+				 				}else{
+				 					secretLocation[this.id].authFailLog[whichAuth] = [req.user.id];
+				 					console.log(whichAuth, "Fail Log: ",secretLocation[this.id].authFailLog[whichAuth])
+				 				}
+				 			}
+
+						}else{
+							next(new Error('singleRouteSecure: not a valid authorization check'))
+						}
+					}else{
+						next(new Error('singleRouteSecure: user is not logged in'));
+					}
+				}
+			}
+
 			getAuthFailLog(){
-				if(secretLocation[this.id].logViewBool){
-					return secretLocation[this.id].authFailLog;  //might allow for modification?  maybe is another param for function
+				if(secretLocation[this.id].logViewBool){ //refactor to return middleware 
+					return secretLocation[this.id].authFailLog; 
 				}else{
 					throw new Error('you cannot modify this log');
 				}
 			}
 
-			viewAuthFailLog(){
+			viewAuthFailLog(){ //refactor to return middleware 
 				return secretLocation[this.id].authFailLog.toString();;
 			}
 		}

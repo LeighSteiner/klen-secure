@@ -25,11 +25,11 @@ of all clearance levels to which a particular user has access.
 ----------</b>
   <br>
 1. npm install --save klen-secure
-2. in the appropriate file:
+2. in the appropriate file:<br>
   const authMaster = require('klen-secure')(); //you MUST invoke authMaster in order to access its functionality
 3. create your authenticator instance, with the model on which to authenticate, your authFuncs object and the logViewBool
-  const userAuthenticator = new authMaster(User, authObject, true);
-4. after login, use the checkAuthorizations middleware to attach clearances to your user: 
+ <br> const userAuthenticator = new authMaster(User, authObject, true);
+4. after login, use the checkAuthorizations middleware to attach clearances to your user: <br>
   router.use(userAuthenticator.checkAuthorizations())
 5.  secure your routes!<br>
   router.get('/ModsOnly', userAuthenticator.authFailLogger('isMod'), (req, res,next) => {

@@ -4,8 +4,6 @@
 // userAuthenticator.isAuthorized(userId);
 
 
-const authMaster = require('./api/klen-secure')(); 
-
 function authMaster(){
 	return (function(){
 		var secretLocation = {};
@@ -21,8 +19,8 @@ function authMaster(){
 
 				this.modelAuthenticator = modelAuthenticator;
 				
-				secretLocation[this.id].authObject = authObject || {  //can we contain the Sequelize in the authObj? 
-					 isUser : async (id) => {  ///REQUIRES NODE 7.6 
+				secretLocation[this.id].authObject = authObject || {  //default setup for Sequelize 
+					 isUser : async (id) => {  // async await requires at least Node 7.6
 						let user = await this.modelAuthenticator.findById(id)
 						return !!user;
 					}, 

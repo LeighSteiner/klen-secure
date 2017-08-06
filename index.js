@@ -40,18 +40,18 @@ function authMaster(){
 
 			}
 
-			 checkAuthorizations(){ 
+			checkAuthorizations(){ 
 			 	let output = [];
-			 	return (req,res,next) => {
+			 	return async (req,res,next) => {
 			 		if(req.user){
-			 			
 					 		for (let k in secretLocation[this.id].authObject){
-						 		if (secretLocation[this.id].authObject[k](req.user.id)){
+					 			let test = await secretLocation[this.id].authObject[k](req.user.id);
+						 		if (test){
 						 			output.push(k);
 						 		}
-					 		req.user.clearances = output;
-					 		console.log('clearance: ',req.user.clearances)
 				 		} 
+				 		req.user.clearances = output.filter((elem,ind)=> output.indexOf(elem) === ind);
+					 	console.log('clearance: ',req.user.clearances)
 				 		next();
 				 	}else{
 				 		next(new Error('checkAuth: user is not logged in'));
@@ -86,19 +86,23 @@ function authMaster(){
 			 }
 			
 			singleRouteSecure(whichAuth){
-				return (req,res,next) => {
+				return async (req,res,next) => {
 					if (req.user){
 						if(secretLocation[this.id].authObject.hasOwnProperty(whichAuth)){
-							if(secretLocation[this.id].authObject[whichAuth](req.user.id)){
+							let test = await secretLocation[this.id].authObject[whichAuth](req.user.id);
+							if(test){
+								console.log("single route",secretLocation[this.id].authObject[whichAuth](req.user.id))
 								next();
 							}else{
 								if (secretLocation[this.id].authFailLog[whichAuth]){
 				 					secretLocation[this.id].authFailLog[whichAuth].push(req.user.id);
 				 					console.log(secretLocation[this.id].authFailLog[whichAuth]);
+				 					next(new Error('single route: you do not have clearance'));
 
 				 				}else{
 				 					secretLocation[this.id].authFailLog[whichAuth] = [req.user.id];
 				 					console.log(whichAuth, "Fail Log: ",secretLocation[this.id].authFailLog[whichAuth])
+				 					next(new Error('single route: you do not have clearance'));
 				 				}
 				 			}
 

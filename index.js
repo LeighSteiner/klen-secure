@@ -13,13 +13,16 @@ function authMaster(){
 
 				this.id = secretId++
 				secretLocation[this.id] = {
-					authFailLog : {}, 
-					logViewBool : logViewBool || false //default setting is that you canNOT modify the log 
+					logViewBool : logViewBool || false, //default setting is that you canNOT modify the log 
+					viewAuthFailLog : this.viewAuthFailLog, 
+					getAuthFailLog : this.getAuthFailLog
 				};
 
 				this.modelAuthenticator = modelAuthenticator;
-				
-				secretLocation[this.id].authObject = authObject || {  //default setup for Sequelize 
+
+				secretLocation[this.id].authFailLog = {};
+
+				secretLocation[this.id].authObject = authObject || {  //can we contain the Sequelize in the authObj? 
 					 isUser : async (id) => {                        // async await requires at least Node 7.6
 						let user = await this.modelAuthenticator.findById(id)
 						return !!user;
@@ -35,8 +38,9 @@ function authMaster(){
 					isSiteController : async (id) => {
 						let user = await this.modelAuthenticator.findById(id)
 						return !!user.isSiteController;
-					}  
+					}
 				}
+
 
 			}
 
@@ -49,6 +53,7 @@ function authMaster(){
 						 		if (test){
 						 			output.push(k);
 						 		}
+					 		
 				 		} 
 				 		req.user.clearances = output.filter((elem,ind)=> output.indexOf(elem) === ind);
 					 	console.log('clearance: ',req.user.clearances)
@@ -59,7 +64,7 @@ function authMaster(){
 			 	}
 			 }
 
-	 		authFailLogger(whichAuth){
+			 authFailLogger(whichAuth){
 			 	return (req,res,next) => {
 				 	if (req.user){
 				 		if(secretLocation[this.id].authObject.hasOwnProperty(whichAuth)){
@@ -68,7 +73,7 @@ function authMaster(){
 				 			}else{
 				 				if (secretLocation[this.id].authFailLog[whichAuth]){
 				 					secretLocation[this.id].authFailLog[whichAuth].push(req.user.id);
-				 					console.log(whichAuth, "Fail Log: ",secretLocation[this.id].authFailLog[whichAuth]);
+				 					console.log(secretLocation[this.id].authFailLog[whichAuth]);
 
 				 				}else{
 				 					secretLocation[this.id].authFailLog[whichAuth] = [req.user.id];
@@ -114,17 +119,24 @@ function authMaster(){
 					}
 				}
 			}
-
 			getAuthFailLog(){
-				if(secretLocation[this.id].logViewBool){ //refactor to return middleware 
-					return secretLocation[this.id].authFailLog; 
+				return (req, res, next) => {
+					console.log('logViewBool',secretLocation[this.id].logViewBool);
+					if(secretLocation[this.id].logViewBool){
+
+					req.user.authFailLog = secretLocation[this.id].authFailLog;
+					next();  
 				}else{
-					throw new Error('you cannot modify this log');
+					next(new Error('you cannot modify this log'));
+				}
 				}
 			}
 
-			viewAuthFailLog(){ //refactor to return middleware 
-				return secretLocation[this.id].authFailLog.toString();;
+			viewAuthFailLog(){
+				return (req,res,next) => {
+					req.user.authFailLog = JSON.stringify(secretLocation[this.id].authFailLog);
+					next();
+				}
 			}
 		}
 	}

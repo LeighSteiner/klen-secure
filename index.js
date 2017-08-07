@@ -22,7 +22,7 @@ function authMaster(){
 
 				secretLocation[this.id].authFailLog = {};
 
-				secretLocation[this.id].authObject = authObject || {  //can we contain the Sequelize in the authObj? 
+				secretLocation[this.id].authObject = authObject || {  
 					 isUser : async (id) => {                        // async await requires at least Node 7.6
 						let user = await this.modelAuthenticator.findById(id)
 						return !!user;
@@ -116,6 +116,13 @@ function authMaster(){
 					}else{
 						next(new Error('singleRouteSecure: user is not logged in'));
 					}
+				}
+			}
+
+			signOutMiddleware(){
+				return (req,res,next) => {
+					req.user.clearances = [];
+					next();
 				}
 			}
 			getAuthFailLog(){

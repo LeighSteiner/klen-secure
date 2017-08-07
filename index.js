@@ -100,7 +100,7 @@ function authMaster(){
 							}else{
 								if (secretLocation[this.id].authFailLog[whichAuth]){
 				 					secretLocation[this.id].authFailLog[whichAuth].push(req.user.id);
-				 					console.log(secretLocation[this.id].authFailLog[whichAuth]);
+				 					console.log(whichAuth, 'Fail Log: ',secretLocation[this.id].authFailLog[whichAuth]);
 				 					next(new Error('single route: you do not have clearance'));
 
 				 				}else{

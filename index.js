@@ -96,7 +96,6 @@ function authMaster(){
 						if(secretLocation[this.id].authObject.hasOwnProperty(whichAuth)){
 							let test = await secretLocation[this.id].authObject[whichAuth](req.user.id);
 							if(test){
-								console.log("single route",secretLocation[this.id].authObject[whichAuth](req.user.id))
 								next();
 							}else{
 								if (secretLocation[this.id].authFailLog[whichAuth]){
